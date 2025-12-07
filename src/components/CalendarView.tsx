@@ -58,6 +58,14 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
     if (!calendarRef.current) return;
 
     try {
+      const bgImage = new Image();
+      bgImage.crossOrigin = 'anonymous';
+      bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
+      
+      await new Promise((resolve) => {
+        bgImage.onload = resolve;
+      });
+
       const canvas = await html2canvas(calendarRef.current, {
         backgroundColor: null,
         scale: 2,
@@ -72,25 +80,19 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
       const ctx = finalCanvas.getContext('2d');
       
       if (ctx) {
-        const bgImage = new Image();
-        bgImage.crossOrigin = 'anonymous';
-        bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
+        ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
+        ctx.drawImage(canvas, 0, 0);
         
-        bgImage.onload = () => {
-          ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
-          ctx.drawImage(canvas, 0, 0);
-          
-          finalCanvas.toBlob((blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
-              link.click();
-              URL.revokeObjectURL(url);
-            }
-          }, 'image/jpeg', 0.95);
-        };
+        finalCanvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
+            link.click();
+            URL.revokeObjectURL(url);
+          }
+        }, 'image/jpeg', 0.95);
       }
     } catch (error) {
       console.error('Error downloading calendar:', error);
