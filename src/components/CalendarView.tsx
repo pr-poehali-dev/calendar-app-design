@@ -57,38 +57,38 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
   return (
     <div className="min-h-screen p-4 md:p-8 animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 backdrop-blur-md bg-white/10 rounded-2xl p-4 shadow-xl border border-white/20">
           <button
             onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-card rounded-lg transition-colors"
+            className="p-3 hover:bg-white/20 rounded-xl transition-all hover:scale-110 text-white"
           >
-            <Icon name="ChevronLeft" size={24} />
+            <Icon name="ChevronLeft" size={28} />
           </button>
           
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h1>
           
           <button
             onClick={() => changeMonth(1)}
-            className="p-2 hover:bg-card rounded-lg transition-colors"
+            className="p-3 hover:bg-white/20 rounded-xl transition-all hover:scale-110 text-white"
           >
-            <Icon name="ChevronRight" size={24} />
+            <Icon name="ChevronRight" size={28} />
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 mb-2">
+        <div className="grid grid-cols-7 gap-3 mb-3">
           {weekDays.map((day) => (
             <div
               key={day}
-              className="text-center text-sm font-medium text-muted-foreground py-2"
+              className="text-center text-sm font-bold text-white/90 py-3 backdrop-blur-sm bg-white/10 rounded-lg"
             >
               {day}
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {days.map((date, index) => {
             if (!date) {
               return <div key={`empty-${index}`} className="aspect-square" />;
@@ -102,26 +102,27 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
                 key={index}
                 onClick={() => onDateSelect(date)}
                 className={`
-                  aspect-square rounded-xl p-2 transition-all duration-200
-                  hover:scale-105 hover:shadow-lg animate-scale-in
-                  ${today ? 'ring-2 ring-primary' : ''}
+                  aspect-square rounded-2xl p-3 transition-all duration-300
+                  hover:scale-110 hover:shadow-2xl animate-scale-in
+                  backdrop-blur-md border-2
+                  ${today ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-transparent' : ''}
                   ${dayData.status === 'busy' 
-                    ? 'bg-destructive/20 hover:bg-destructive/30' 
-                    : 'bg-card hover:bg-card/80'
+                    ? 'bg-gradient-to-br from-red-500/30 to-pink-500/30 border-red-400/50 hover:from-red-500/40 hover:to-pink-500/40' 
+                    : 'bg-gradient-to-br from-green-500/30 to-emerald-500/30 border-green-400/50 hover:from-green-500/40 hover:to-emerald-500/40'
                   }
                 `}
                 style={{ animationDelay: `${index * 10}ms` }}
               >
                 <div className="flex flex-col items-center justify-center h-full">
-                  <span className="text-lg font-semibold mb-1">
+                  <span className="text-xl font-bold mb-1 text-white drop-shadow-lg">
                     {date.getDate()}
                   </span>
-                  <span className={`text-xs ${
+                  <span className={`text-xs font-semibold ${
                     dayData.status === 'busy' 
-                      ? 'text-destructive font-medium' 
-                      : 'text-muted-foreground'
+                      ? 'text-red-200' 
+                      : 'text-green-200'
                   }`}>
-                    {dayData.status === 'busy' ? 'Занят' : 'Свободен'}
+                    {dayData.status === 'busy' ? '🔴 Занят' : '✅ Свободен'}
                   </span>
                 </div>
               </button>
