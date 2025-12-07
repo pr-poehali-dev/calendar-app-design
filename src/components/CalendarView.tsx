@@ -58,9 +58,12 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
     if (!calendarRef.current) return;
 
     try {
+      const response = await fetch('https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg');
+      const blob = await response.blob();
+      const bgImageUrl = URL.createObjectURL(blob);
+      
       const bgImage = new Image();
-      bgImage.crossOrigin = 'anonymous';
-      bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
+      bgImage.src = bgImageUrl;
       
       await new Promise((resolve, reject) => {
         bgImage.onload = resolve;
@@ -71,7 +74,6 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
         backgroundColor: null,
         scale: 2,
         logging: false,
-        useCORS: true,
       });
 
       const finalCanvas = document.createElement('canvas');
@@ -84,9 +86,11 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
       ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
       ctx.drawImage(canvas, 0, 0);
       
-      finalCanvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
+      URL.revokeObjectURL(bgImageUrl);
+      
+      finalCanvas.toBlob((resultBlob) => {
+        if (resultBlob) {
+          const url = URL.createObjectURL(resultBlob);
           const link = document.createElement('a');
           link.href = url;
           link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
