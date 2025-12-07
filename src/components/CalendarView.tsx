@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { DayData } from '@/pages/Index';
+import html2canvas from 'html2canvas';
 
 interface CalendarViewProps {
   onDateSelect: (date: Date) => void;
@@ -9,6 +10,7 @@ interface CalendarViewProps {
 
 const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   const monthNames = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -52,11 +54,47 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
            date.getFullYear() === today.getFullYear();
   };
 
+  const downloadCalendarAsJPG = async () => {
+    if (!calendarRef.current) return;
+
+    try {
+      const canvas = await html2canvas(calendarRef.current, {
+        backgroundColor: '#1a1f3a',
+        scale: 2,
+        logging: false,
+      });
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/jpeg', 0.95);
+    } catch (error) {
+      console.error('Error downloading calendar:', error);
+    }
+  };
+
   const days = getDaysInMonth(currentDate);
 
   return (
     <div className="min-h-screen p-4 md:p-8 animate-fade-in">
       <div className="max-w-4xl mx-auto">
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={downloadCalendarAsJPG}
+            className="flex items-center gap-2 px-6 py-3 backdrop-blur-md bg-white/10 hover:bg-white/20 rounded-xl transition-all hover:scale-105 text-white font-semibold shadow-xl border border-white/20"
+          >
+            <Icon name="Download" size={20} />
+            Скачать календарь JPG
+          </button>
+        </div>
+        
+      <div ref={calendarRef}>
         <div className="flex items-center justify-between mb-8 backdrop-blur-md bg-white/10 rounded-2xl p-4 shadow-xl border border-white/20">
           <button
             onClick={() => changeMonth(-1)}
@@ -129,6 +167,7 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
             );
           })}
         </div>
+      </div>
       </div>
     </div>
   );
