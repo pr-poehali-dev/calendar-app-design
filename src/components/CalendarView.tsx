@@ -58,14 +58,33 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
     if (!calendarRef.current) return;
 
     try {
+      const bgImage = new Image();
+      bgImage.crossOrigin = 'anonymous';
+      bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
+      
+      await new Promise((resolve, reject) => {
+        bgImage.onload = resolve;
+        bgImage.onerror = reject;
+      });
+
       const canvas = await html2canvas(calendarRef.current, {
-        backgroundColor: '#1a2332',
+        backgroundColor: null,
         scale: 2,
-        logging: true,
+        logging: false,
         useCORS: true,
       });
 
-      canvas.toBlob((blob) => {
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = canvas.width;
+      finalCanvas.height = canvas.height;
+      const ctx = finalCanvas.getContext('2d');
+      
+      if (!ctx) throw new Error('Cannot get canvas context');
+      
+      ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+      
+      finalCanvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
