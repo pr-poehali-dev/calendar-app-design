@@ -58,39 +58,57 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
     if (!calendarRef.current) return;
 
     try {
-      const response = await fetch('https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg');
-      const blob = await response.blob();
-      const bgImageUrl = URL.createObjectURL(blob);
+      const bgDiv = document.querySelector('[style*="backgroundImage"]') as HTMLElement;
       
-      const bgImage = new Image();
-      bgImage.src = bgImageUrl;
-      
-      await new Promise((resolve, reject) => {
-        bgImage.onload = resolve;
-        bgImage.onerror = reject;
-      });
-
       const canvas = await html2canvas(calendarRef.current, {
-        backgroundColor: null,
+        backgroundColor: '#1a2840',
         scale: 2,
         logging: false,
+        useCORS: true,
+        allowTaint: true,
       });
 
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = canvas.width;
-      finalCanvas.height = canvas.height;
-      const ctx = finalCanvas.getContext('2d');
+      if (bgDiv) {
+        const bgStyle = window.getComputedStyle(bgDiv);
+        const bgImageUrl = bgStyle.backgroundImage.slice(5, -2);
+        
+        const bgImage = new Image();
+        bgImage.crossOrigin = 'anonymous';
+        bgImage.src = bgImageUrl;
+        
+        await new Promise((resolve) => {
+          bgImage.onload = resolve;
+          bgImage.onerror = () => resolve(null);
+        });
+
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = canvas.width;
+        finalCanvas.height = canvas.height;
+        const ctx = finalCanvas.getContext('2d');
+        
+        if (ctx && bgImage.complete && bgImage.naturalWidth > 0) {
+          ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
+          ctx.drawImage(canvas, 0, 0);
+          
+          finalCanvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }
+          }, 'image/jpeg', 0.95);
+          return;
+        }
+      }
       
-      if (!ctx) throw new Error('Cannot get canvas context');
-      
-      ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
-      ctx.drawImage(canvas, 0, 0);
-      
-      URL.revokeObjectURL(bgImageUrl);
-      
-      finalCanvas.toBlob((resultBlob) => {
-        if (resultBlob) {
-          const url = URL.createObjectURL(resultBlob);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
