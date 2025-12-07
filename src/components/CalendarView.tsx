@@ -59,21 +59,39 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
 
     try {
       const canvas = await html2canvas(calendarRef.current, {
-        backgroundColor: '#1a1f3a',
+        backgroundColor: null,
         scale: 2,
         logging: false,
+        useCORS: true,
+        allowTaint: true,
       });
 
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
-          link.click();
-          URL.revokeObjectURL(url);
-        }
-      }, 'image/jpeg', 0.95);
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = canvas.width;
+      finalCanvas.height = canvas.height;
+      const ctx = finalCanvas.getContext('2d');
+      
+      if (ctx) {
+        const bgImage = new Image();
+        bgImage.crossOrigin = 'anonymous';
+        bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
+        
+        bgImage.onload = () => {
+          ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
+          ctx.drawImage(canvas, 0, 0);
+          
+          finalCanvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
+              link.click();
+              URL.revokeObjectURL(url);
+            }
+          }, 'image/jpeg', 0.95);
+        };
+      }
     } catch (error) {
       console.error('Error downloading calendar:', error);
     }
