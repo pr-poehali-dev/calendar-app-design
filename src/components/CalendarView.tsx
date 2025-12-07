@@ -58,44 +58,28 @@ const CalendarView = ({ onDateSelect, getDayData }: CalendarViewProps) => {
     if (!calendarRef.current) return;
 
     try {
-      const bgImage = new Image();
-      bgImage.crossOrigin = 'anonymous';
-      bgImage.src = 'https://cdn.poehali.dev/files/istockphoto-1435226158-612x612.jpg';
-      
-      await new Promise((resolve) => {
-        bgImage.onload = resolve;
-      });
-
       const canvas = await html2canvas(calendarRef.current, {
-        backgroundColor: null,
+        backgroundColor: '#1a2332',
         scale: 2,
-        logging: false,
+        logging: true,
         useCORS: true,
-        allowTaint: true,
       });
 
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = canvas.width;
-      finalCanvas.height = canvas.height;
-      const ctx = finalCanvas.getContext('2d');
-      
-      if (ctx) {
-        ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
-        ctx.drawImage(canvas, 0, 0);
-        
-        finalCanvas.toBlob((blob) => {
-          if (blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
-            link.click();
-            URL.revokeObjectURL(url);
-          }
-        }, 'image/jpeg', 0.95);
-      }
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `calendar-${monthNames[currentDate.getMonth()]}-${currentDate.getFullYear()}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/jpeg', 0.95);
     } catch (error) {
       console.error('Error downloading calendar:', error);
+      alert('Ошибка при скачивании календаря');
     }
   };
 
